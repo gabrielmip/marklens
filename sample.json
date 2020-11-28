@@ -1,0 +1,105 @@
+{
+  "checksum": "33aa211f84d6a5cc71ec100305b3f36e",
+  "roots": {
+    "bookmark_bar": {
+      "children": [
+        {
+          "children": [
+            {
+              "date_added": "13242188568131754",
+              "guid": "c1b1eacf-10b9-4c56-9d95-a642dbdb2f26",
+              "id": "350",
+              "name": "gis - Developing WebGIS application with geoserver+geoext+postgresql vs geoserver+leaflet+postgresql? - Stack Overflow",
+              "type": "url",
+              "url": "https://stackoverflow.com/questions/55376591/developing-webgis-application-with-geoservergeoextpostgresql-vs-geoserverleaf"
+            },
+            {
+              "date_added": "13246374460336685",
+              "guid": "b636f29b-ede5-42e1-a1d9-1fa5003b41b2",
+              "id": "400",
+              "name": "K: The Overlooked Variable That's Driving the Pandemic - The Atlantic",
+              "type": "url",
+              "url": "https://www.theatlantic.com/health/archive/2020/09/k-overlooked-variable-driving-pandemic/616548/"
+            }
+          ],
+          "date_added": "13232401624652571",
+          "date_modified": "13249418248528799",
+          "guid": "2b145535-aed0-4e96-8d21-e3bf240406db",
+          "id": "44",
+          "name": "Arquivo",
+          "type": "folder"
+        },
+        {
+          "children": [
+            {
+              "date_added": "13240096677569908",
+              "guid": "1ec23227-3b18-47a5-b9d2-61611ad606fd",
+              "id": "297",
+              "name": "https://foundations-computational-linguistics.github.io",
+              "type": "url",
+              "url": "https://foundations-computational-linguistics.github.io/"
+            }
+          ],
+          "date_added": "13232401624653185",
+          "date_modified": "13246377731339791",
+          "guid": "260b5039-22ce-47ab-958d-d3161e0108e8",
+          "id": "56",
+          "name": "Tutoriais",
+          "type": "folder"
+        }
+      ],
+      "date_added": "13231455510848777",
+      "date_modified": "13249418130302762",
+      "guid": "00000000-0000-4000-a000-000000000002",
+      "id": "1",
+      "name": "Bookmarks",
+      "type": "folder"
+    },
+    "other": {
+      "children": [
+        {
+          "children": [
+            {
+              "date_added": "13230821289000000",
+              "guid": "c76a63d3-1a13-45e6-977a-7b32351f5e59",
+              "id": "88",
+              "name": "Amazon",
+              "type": "url",
+              "url": "https://vivaldi.com/bk/amazon"
+            },
+            {
+              "date_added": "13230821289000000",
+              "guid": "d9afbf35-b0c7-4c82-a086-b9a163dc68d0",
+              "id": "89",
+              "name": "Booking.com",
+              "type": "url",
+              "url": "https://vivaldi.com/bk/bookingcom-en-us"
+            }
+          ],
+          "date_added": "13232401624653447",
+          "date_modified": "0",
+          "guid": "630e90aa-b3dd-4917-b0e7-c2dfb54dcdbe",
+          "id": "59",
+          "name": "Lixeira",
+          "type": "folder"
+        }
+      ],
+      "date_added": "13231455510848783",
+      "date_modified": "13249418144467216",
+      "guid": "00000000-0000-4000-a000-000000000003",
+      "id": "2",
+      "name": "Other bookmarks",
+      "type": "folder"
+    },
+    "synced": {
+      "children": [],
+      "date_added": "13231455510848784",
+      "date_modified": "0",
+      "guid": "00000000-0000-4000-a000-000000000004",
+      "id": "3",
+      "name": "Mobile bookmarks",
+      "type": "folder"
+    }
+  },
+  "version": 1
+}
