@@ -33,15 +33,19 @@
 (defn search
   ([query] (search query 10))
   ([query n-results]
-   (let [term-ids (storage/query-term-ids! (extract-terms query))
+   (let [terms (extract-terms query)
+         term-ids (storage/query-term-ids! terms)
          doc-term-stats (get-doc-term-stats term-ids)
+         term-stats (storage/query-term-stats! term-ids)
          tensorized-docs (tensorizer/tensorize-documents doc-term-stats term-ids)
-         results (take n-results (ranking/rank-documents tensorized-docs))
+         query-tensor (tensorizer/tensorize-query term-ids term-stats)
+         results (take n-results (ranking/rank-documents tensorized-docs query-tensor))
          documents (storage/get-indexed-documents! (map #(:document_id %) results))]
+     (println query-tensor)
      (map
       #(assoc (get documents (:document_id %))
               :tensor (:tensor %)
-              :norm (:norm %))
+              :similarity (:similarity %))
       results))))
 
 

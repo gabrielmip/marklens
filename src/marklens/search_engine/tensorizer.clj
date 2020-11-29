@@ -1,4 +1,5 @@
-(ns marklens.search-engine.tensorizer)
+(ns marklens.search-engine.tensorizer
+  (:require [marklens.utils :as utils]))
 
 (defn calculate-tfidf
   [tf ndocs total-ndocs]
@@ -32,3 +33,19 @@
      {:document_id document-id
       :tensor (as-tfidf terms-stats (get-empty-tensor search-term-ids))})
    (group-by :document_id doc-term-stats)))
+
+(defn query-term-as-dimension
+  [term-id stats]
+  {:term_id term-id
+    :frequency 1
+    :ndocs (:ndocs stats)
+    :total_ndocs (:total_ndocs stats)})
+
+(defn tensorize-query
+  [term-ids term-stats]
+  (let [indexed-stats (utils/index-by :term_id term-stats)]
+    (as-tfidf
+     (map
+      #(query-term-as-dimension % (get indexed-stats %))
+      term-ids)
+     (get-empty-tensor term-ids))))
