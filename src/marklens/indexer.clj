@@ -49,14 +49,17 @@
      tokens)))
 
 (defn index-pages! [pages]
-  (let [stop-words (set (string/split-lines (slurp "resources/stopwords.txt")))]
-    (count
+  (let [stop-words (set (string/split-lines (slurp "resources/stopwords.txt")))
+        unseen-pages (filter-unseen-pages! pages)]
+    (when (seq unseen-pages)
+      (println (str "Unseen pages to be indexed: " (count unseen-pages))))
+    (doall
      (map-indexed
       (fn [index page]
-        (println (str "(" (+ index 1) "/" (count pages) ") " (:url page)))
+        (println (str "(" (+ index 1) "/" (count unseen-pages) ") " (:url page)))
         (let [content (crawler/text-from-page! (:url page))
               tokens (tokens-for-index content stop-words)
               page-to-save (assoc page :nwords (count-words tokens)
-                                       :content content)]
-             (save-page! page-to-save tokens)))
-      (filter-unseen-pages! pages)))))
+                                  :content content)]
+          (save-page! page-to-save tokens)))
+      unseen-pages))))

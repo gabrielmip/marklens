@@ -1,0 +1,21 @@
+Marklens 1.0.0
+
+Commands:
+    index, search and help.
+
+index [filepath]:
+    Crawl and index your bookmarked pages. This command must be run before any search can be performed.
+    Receives a file path as argument. The pointed file must be a JSON containing bookmarked pages in the format used by Google Chrome's derived browsers.
+    Path examples in linux:
+        - Brave: $HOME/.config/BraveSoftware/Brave-Browser/Default/Bookmarks
+        - Chromium: $HOME/.config/chromium/Default/Bookmarks
+
+search [query term 1] [query term 2] ... [query term n]:
+    Search your bookmarked pages with the provided search query. The index command must be run before.
+    Example commands:
+        - search youtube clojure
+        - search computational linguistics
+        - search plato
+
+help:
+    Prints this manual.

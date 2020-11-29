@@ -41,11 +41,8 @@
          query-tensor (tensorizer/tensorize-query term-ids term-stats)
          results (take n-results (ranking/rank-documents tensorized-docs query-tensor))
          documents (storage/get-indexed-documents! (map #(:document_id %) results))]
-     (println query-tensor)
      (map
       #(assoc (get documents (:document_id %))
               :tensor (:tensor %)
               :similarity (:similarity %))
       results))))
-
-

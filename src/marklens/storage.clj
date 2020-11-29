@@ -60,8 +60,7 @@
          (create-terms-table!)
          (create-frequency-table!)
          "CREATE INDEX term_id_document_id ON term_frequency(term_id, document_id)"])
-       (catch Exception e
-         (println (.getMessage e)))))
+       (catch java.sql.BatchUpdateException _)))
 
 (defn drop-db! []
   (try (jdbc/db-do-commands
