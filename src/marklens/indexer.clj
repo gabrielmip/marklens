@@ -43,10 +43,10 @@
 
 (defn- count-words [tokens]
   (reduce
-    +
-    (map
-      #(count (:indexes %))
-      tokens)))
+   +
+   (map
+     #(count (:indexes %))
+     tokens)))
 
 (defn index-pages! [pages]
   (let [stop-words (set (string/split-lines (slurp "resources/stopwords.txt")))]
@@ -58,5 +58,5 @@
               tokens (tokens-for-index content stop-words)
               page-to-save (assoc page :nwords (count-words tokens)
                                        :content content)]
-          (save-page! page-to-save tokens)))
+             (save-page! page-to-save tokens)))
       (filter-unseen-pages! pages)))))

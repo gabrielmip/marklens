@@ -1,9 +1,8 @@
 (ns marklens.storage
-  (:import  [com.mchange.v2.c3p0 ComboPooledDataSource])
   (:require [clojure.java.jdbc :as jdbc]
-            [clojure.pprint :as pp]
             [clojure.string :as string]
-            [clojure.data.json :refer [json-str]]))
+            [clojure.data.json :as json]
+            [marklens.utils :as utils]))
 
 (def db-spec
   {:classname "org.sqlite.JDBC"
@@ -94,7 +93,7 @@
 
 (defn insert-document!
   [document]
-  (let [jsonified-parents (json-str (:parents document))
+  (let [jsonified-parents (json/json-str (:parents document))
         url               (:url document)
         to-be-inserted    (assoc document :parents jsonified-parents)]
     (update-or-insert! db-spec :documents to-be-inserted ["url = ?" url])
@@ -118,7 +117,7 @@
         entity {:document_id document-id
                 :term_id term-id
                 :frequency (:frequency token)
-                :indexes (json-str (:indexes token))}]
+                :indexes (json/json-str (:indexes token))}]
        (update-or-insert!
         con
         :term_frequency
@@ -138,3 +137,75 @@
   (set
     (jdbc/query db-spec ["select url from documents"]
                         {:row-fn :url})))
+
+(defn query-doc-term-stats!
+  [term-ids]
+  (jdbc/query db-spec
+    (cons
+      (str "select
+              term_id,
+              document_id,
+              frequency
+            from term_frequency
+            where term_id in ("
+              (string/join "," (repeat (count term-ids) "?"))
+            ")")
+      (map str term-ids))))
+
+(defn query-term-stats!
+  [term-ids]
+  (jdbc/query db-spec
+    (cons
+      (str "select
+              term_id,
+              count(document_id) as ndocs,
+              d.total_ndocs
+            from term_frequency
+              join (select count(*) as total_ndocs from documents) as d
+            where term_id in ("
+              (string/join "," (repeat (count term-ids) "?"))
+            ")
+            group by term_id")
+      (map str term-ids))))
+
+(defn get-term-ids-by-term!
+  [terms]
+  (utils/index-value-by
+    :rowid
+    :term
+    (jdbc/query db-spec
+      (cons
+        (str "select
+                rowid,
+                term
+              from terms
+              where term in ("
+              (string/join "," (repeat (count terms) "?"))
+              ")")
+        terms))))
+
+(defn query-term-ids!
+  "returns the corresponding ids in the same order.
+   returns 0 when the term is not defined in our vocabulary."
+  [terms]
+  (let [ids-by-term (get-term-ids-by-term! terms)]
+    (map #(get ids-by-term % 0) terms)))
+
+(defn parse-document-jsonified-fields
+  [document]
+  (assoc document :parents (json/read-str (:parents document))))
+
+(defn get-indexed-documents!
+  [ids]
+  (utils/index-by
+    :rowid
+    (map
+      parse-document-jsonified-fields
+      (jdbc/query db-spec
+        (cons
+          (str "select rowid, name, url, parents, date_added
+                from documents
+                where rowid in ("
+                  (string/join "," (repeat (count ids) "?"))
+                ")")
+          ids)))))
