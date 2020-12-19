@@ -60,6 +60,6 @@
         (let [content (crawler/text-from-page! (:url page))
               tokens (tokens-for-index content stop-words)
               page-to-save (assoc page :nwords (count-words tokens)
-                                  :content content)]
+                                       :content content)]
           (save-page! page-to-save tokens)))
       unseen-pages))))
