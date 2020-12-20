@@ -1,4 +1,4 @@
-Marklens 1.0.0
+Marklens 2.0.0
 
 Commands:
     index, search and help.
