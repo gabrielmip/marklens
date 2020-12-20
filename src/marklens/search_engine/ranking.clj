@@ -14,14 +14,27 @@
 
 (defn calculate-similarity
   [tensor base]
-  (/ (dot-product tensor base)
-     (* (norm tensor) (norm base))))
+  (let [denominator (* (norm tensor) (norm base))]
+    (if (zero? denominator)
+        0
+        (/ (dot-product tensor base)
+           denominator))))
 
-(defn set-similarity
+(defn get-tensor
+  [document origin dimension-count]
+  (if (contains? document origin)
+      (origin document)
+      (repeat dimension-count 0)))
+
+(defn set-similarities
   [document query-tensor]
-  (assoc document
-         :similarity
-         (calculate-similarity (:tensor document) query-tensor)))
+  (let [calculator (fn [origin]
+                     (calculate-similarity
+                      (get-tensor document origin (count query-tensor))
+                      query-tensor))]
+    (assoc document :similarities {:body (calculator :body)
+                                   :url (calculator :url)
+                                   :name (calculator :name)})))
 
 (defn count-non-zeros
   [tensor]
@@ -33,10 +46,16 @@
     0
     tensor))
 
+(defn get-sorting-order
+  [{similarities :similarities}]
+  (vector
+    (:name similarities)
+    (:url  similarities)
+    (:body similarities)))
+
 (defn rank-documents
   [documents query-tensor]
   (reverse
     (sort-by
-      (fn [{similarity :similarity tensor :tensor}]
-        (vector (count-non-zeros tensor) similarity))
-      (map #(set-similarity % query-tensor) documents))))
+      get-sorting-order
+      (map #(set-similarities % query-tensor) documents))))

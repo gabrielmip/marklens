@@ -1,12 +1,18 @@
 (ns marklens.search-engine.tensorizer
   (:require [marklens.utils :as utils]))
 
-(defn calculate-tfidf
+(defn- unsafe-calculate-tfidf
   [tf ndocs total-ndocs]
   (let [ln (fn [num] (/ (Math/log num)
                         (Math/log Math/E)))
         idf (+ 1 (ln (/ total-ndocs ndocs)))]
     (* tf idf)))
+
+(defn calculate-tfidf
+  [tf ndocs total-ndocs]
+  (if (every? integer? [tf ndocs total-ndocs])
+      (unsafe-calculate-tfidf tf ndocs total-ndocs)
+      0))
 
 (defn get-empty-tensor
   [search-term-ids]
@@ -28,11 +34,15 @@
 
 (defn tensorize-documents
   [doc-term-stats search-term-ids]
-  (map
-   (fn [[document-id terms-stats]]
-     {:document_id document-id
-      :tensor (as-tfidf terms-stats (get-empty-tensor search-term-ids))})
-   (group-by :document_id doc-term-stats)))
+  (vals
+   (reduce
+    (fn [by-documents [group terms-stats]]
+      (assoc by-documents
+             (:document_id group) (assoc (get by-documents (:document_id group))
+                                         :document_id (:document_id group)
+                                         (keyword (:origin group)) (as-tfidf terms-stats (get-empty-tensor search-term-ids)))))
+    {}
+    (group-by #(select-keys % [:document_id :origin]) doc-term-stats))))
 
 (defn query-term-as-dimension
   [term-id stats]
