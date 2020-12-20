@@ -11,7 +11,7 @@
           [key (map #(:index %) appearances)])
       (group-by #(:term %) tokens))))
 
-(defn- tokens-for-index [text stop-words]
+(defn- tokens-for-index [text stop-words origin]
   (let [tokens (tokenizer/tokenize text stop-words)
         unique-tokens (distinct (map #(:term %) tokens))
         counts-by-token (frequencies (map #(:term %) tokens))
@@ -20,7 +20,8 @@
       (fn [token]
         {:term token
          :frequency (get counts-by-token token)
-         :indexes (get indexes-by-token token)})
+         :indexes (get indexes-by-token token)
+         :origin origin})
       unique-tokens)))
 
 (defn- save-tokens! [tokens]
@@ -48,6 +49,14 @@
      #(count (:indexes %))
      tokens)))
 
+(defn get-tokens-from-page
+  [page content stop-words]
+  (flatten
+         (list
+          (tokens-for-index content stop-words "body")
+          (tokens-for-index (:url page) stop-words "url")
+          (tokens-for-index (:name page) stop-words "name"))))
+
 (defn index-pages! [pages]
   (let [stop-words (set (string/split-lines (slurp "resources/stopwords.txt")))
         unseen-pages (filter-unseen-pages! pages)]
@@ -58,7 +67,7 @@
       (fn [index page]
         (println (str "(" (+ index 1) "/" (count unseen-pages) ") " (:url page)))
         (let [content (crawler/text-from-page! (:url page))
-              tokens (tokens-for-index content stop-words)
+              tokens (get-tokens-from-page page content stop-words)
               page-to-save (assoc page :nwords (count-words tokens)
                                        :content content)]
           (save-page! page-to-save tokens)))

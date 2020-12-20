@@ -47,6 +47,7 @@
                          [[:term_id :int]
                           [:document_id :int]
                           [:frequency :int]
+                          [:origin "varchar(30)"]
                           [:indexes :text] ; json
                           ["FOREIGN KEY(term_id) REFERENCES terms(rowid)"]
                           ["FOREIGN KEY(document_id) REFERENCES documents(rowid)"]
@@ -78,10 +79,6 @@
        (catch Exception _ ; expects exceptions when tuple already exists
          (jdbc/update! con table row where-clause))))
 
-  ; (jdbc/with-db-transaction [t-con db]
-  ;   (try (jdbc/insert! t-con table row)
-  ;        (catch Exception _
-  ;           (jdbc/update! t-con table row where-clause)))))
 
 (defn- query-element-id!
   [con table pk-field pk-value]
@@ -113,15 +110,17 @@
   [con document token]
   (let [term-id (:rowid token)
         document-id (:rowid document)
+        origin (:origin token)
         entity {:document_id document-id
                 :term_id term-id
                 :frequency (:frequency token)
+                :origin origin
                 :indexes (json/json-str (:indexes token))}]
        (update-or-insert!
         con
         :term_frequency
         entity
-        ["term_id = ? and document_id = ?" term-id document-id])
+        ["term_id = ? and document_id = ? and origin = ?" term-id document-id origin])
        true))
 
 (defn insert-frequencies!
@@ -138,12 +137,15 @@
                         {:row-fn :url})))
 
 (defn query-doc-term-stats!
+  "Returns the IDs from term, document, origin and
+   frequency from provided term IDs."
   [term-ids]
   (jdbc/query db-spec
     (cons
       (str "select
               term_id,
               document_id,
+              origin,
               frequency
             from term_frequency
             where term_id in ("
