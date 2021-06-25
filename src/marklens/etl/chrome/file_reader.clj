@@ -1,8 +1,7 @@
-(ns marklens.file-reader
+(ns marklens.etl.chrome.file-reader
   (:require [clojure.data.json :as json]
             [clojure.spec.alpha :as s]
             [java-time :as java-time]))
-
 
 (defn- bookmark-epoch-to-timestamp [epoch-str]
   (let [base (java-time/local-date-time 1601 1 1)
@@ -12,8 +11,8 @@
 (defn- gen-stringified-int []
   (let [choices (map char (range 48 58))]
     (apply
-      str
-      (repeatedly 10 #(rand-nth choices)))))
+     str
+     (repeatedly 10 #(rand-nth choices)))))
 
 (def stringified-integers
   (set (repeatedly 10 gen-stringified-int)))
@@ -26,18 +25,18 @@
 
 (s/def ::folder
   (s/and
-    #(= (:type %) "folder")
-    (s/keys :req-un [::date_added ::id ::name ::type ::children])))
+   #(= (:type %) "folder")
+   (s/keys :req-un [::date_added ::id ::name ::type ::children])))
 
 (s/def ::page
   (s/and
-    #(= (:type %) "url")
-    (s/keys :req-un [::date_added ::id ::name ::type])))
+   #(= (:type %) "url")
+   (s/keys :req-un [::date_added ::id ::name ::type])))
 
 (s/def ::node
   (s/and
-    (s/or :folder ::folder :page ::page)
-    (s/conformer #(second %))))
+   (s/or :folder ::folder :page ::page)
+   (s/conformer #(second %))))
 
 ; o generator aqui não funciona e eu não entendo porque
 ; (s/def ::children
@@ -69,15 +68,15 @@
 (defn- append-parents-to-nodes
   [nodes parent]
   (map
-    #(assoc % :parents
-      (conj (:parents parent) (:name parent))) nodes))
+   #(assoc % :parents
+           (conj (:parents parent) (:name parent))) nodes))
 
 (defn- get-pages-from-root
   [bookmark-tree-root]
   (tree-seq
-    #(contains? % :children)
-    #(append-parents-to-nodes (:children %) %)
-    bookmark-tree-root))
+   #(contains? % :children)
+   #(append-parents-to-nodes (:children %) %)
+   bookmark-tree-root))
 
 (defn- remove-unwanted-keys
   [pages]
@@ -87,12 +86,12 @@
   "Traverses tree and returns list of pages. :parents is added to pages and contains their parent folders in reverse."
   [bookmark-tree]
   (filter (fn [node] (contains? node :url))
-    (flatten
-      (map
-        (fn [[_ root]]
-          (remove-unwanted-keys
-            (get-pages-from-root (assoc root :parents ()))))
-        (:roots bookmark-tree)))))
+          (flatten
+           (map
+            (fn [[_ root]]
+              (remove-unwanted-keys
+               (get-pages-from-root (assoc root :parents ()))))
+            (:roots bookmark-tree)))))
 
 ; genealogy to string:
 ; (fn [page] #(clojure.string/join " > " (reverse (:parents page)))

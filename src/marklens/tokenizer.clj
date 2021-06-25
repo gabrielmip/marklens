@@ -10,29 +10,29 @@
 (defn exclude-bad-tokens
   [tokens forbidden-tokens]
   (filter
-    #(and (not (str/blank? (:term %)))
-          (not (contains? forbidden-tokens (:term %))))
-    tokens))
+   #(and (not (str/blank? (:term %)))
+         (not (contains? forbidden-tokens (:term %))))
+   tokens))
 
 (defn set-index
   [tokens]
   (first
-    (reduce
-      (fn [[tokens-with-index index]
-          token]
-        [(conj tokens-with-index {:term token :index index})
-         (+ index 1 (count token))]) ; this >1< regards the lost caracter used to split string
-      [[] 0]
-      tokens)))
+   (reduce
+    (fn [[tokens-with-index index]
+         token]
+      [(conj tokens-with-index {:term token :index index})
+       (+ index 1 (count token))]) ; this >1< regards the lost caracter used to split string
+    [[] 0]
+    tokens)))
 
 (defn tokenize
   [text stop-words]
   (exclude-bad-tokens
-    (set-index
-      (->
-        text
-        (deaccent)
-        (str/lower-case)
-        (str/replace #"[^a-zA-Z0-9]" " ")
-        (str/split #" ")))
-    stop-words))
+   (set-index
+    (->
+     text
+     (deaccent)
+     (str/lower-case)
+     (str/replace #"[^a-zA-Z0-9]" " ")
+     (str/split #" ")))
+   stop-words))

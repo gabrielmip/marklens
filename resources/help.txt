@@ -9,6 +9,7 @@ index [filepath]:
     Path examples in linux:
         - Brave: $HOME/.config/BraveSoftware/Brave-Browser/Default/Bookmarks
         - Chromium: $HOME/.config/chromium/Default/Bookmarks
+        - Firefox (to be implemented): $HOME/.mozilla/firefox/hltrd31r.default-release/places.sqlite
 
 search [query term 1] [query term 2] ... [query term n]:
     Search your bookmarked pages with the provided search query. The index command must be run before.
