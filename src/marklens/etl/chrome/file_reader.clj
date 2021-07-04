@@ -1,7 +1,15 @@
 (ns marklens.etl.chrome.file-reader
   (:require [clojure.data.json :as json]
             [clojure.spec.alpha :as s]
+            [clojure.spec.gen.alpha :as gen]
             [java-time :as java-time]))
+
+(comment
+  "how to sample a bookmark file content"
+  (require '[marklens.tree-spec :refer [gen-overrides-for-max-depth]])
+  (gen/sample
+   (s/gen ::bookmark-file
+          (gen-overrides-for-max-depth ::folder 3))))
 
 (defn- bookmark-epoch-to-timestamp [epoch-str]
   (let [base (java-time/local-date-time 1601 1 1)
@@ -19,31 +27,27 @@
 
 (def numeric-str (s/and string? #(re-matches #"\d+" %)))
 
+(defn create-type-spec
+  [name]
+  (s/spec #(= % name)
+          :gen #(s/gen #{name})))
+
 (s/def ::bookmark-file (s/keys :req-un [::roots]))
 
 (s/def ::roots (s/map-of keyword? ::node))
-
-(s/def ::folder
-  (s/and
-   #(= (:type %) "folder")
-   (s/keys :req-un [::date_added ::id ::name ::type ::children])))
-
-(s/def ::page
-  (s/and
-   #(= (:type %) "url")
-   (s/keys :req-un [::date_added ::id ::name ::type])))
 
 (s/def ::node
   (s/and
    (s/or :folder ::folder :page ::page)
    (s/conformer #(second %))))
 
-; o generator aqui não funciona e eu não entendo porque
-; (s/def ::children
-;   (s/with-gen
-;     (s/coll-of ::node)
-;     #(gen/set (s/gen ::page))))
-(s/def ::children (s/coll-of ::node))
+(s/def ::folder
+  (s/keys :req-un [::date_added ::id ::name :folder/type ::children]))
+
+(s/def ::page
+  (s/keys :req-un [::date_added ::id ::name :page/type]))
+
+(s/def ::children (s/spec (s/coll-of ::node :gen-max 5)))
 
 (s/def ::date_added
   (s/with-gen
@@ -52,10 +56,15 @@
 
 (s/def ::name string?)
 
+(s/def :folder/type (create-type-spec "folder"))
+
+(s/def :page/type (create-type-spec "page"))
+
 (s/def ::type
-  (s/with-gen
-    (s/and string? #{"folder" "url"})
-    #(s/gen #{"folder" "url"})))
+  (s/spec (s/or :folder :folder/type
+                :page :page/type)
+          :gen #(gen/one-of [(s/gen :folder/type)
+                             (s/gen :page/type)])))
 
 (s/def ::id
   (s/with-gen numeric-str #(s/gen stringified-integers)))
