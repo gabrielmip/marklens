@@ -1,7 +1,7 @@
 (ns marklens.storage
-  (:require [clojure.java.jdbc :as jdbc]
+  (:require [clojure.data.json :as json]
+            [clojure.java.jdbc :as jdbc]
             [clojure.string :as string]
-            [clojure.data.json :as json]
             [marklens.utils :as utils]))
 
 (def db-spec
@@ -50,8 +50,7 @@
                           [:origin "varchar(30)"]
                           [:indexes :text] ; json
                           ["FOREIGN KEY(term_id) REFERENCES terms(rowid)"]
-                          ["FOREIGN KEY(document_id) REFERENCES documents(rowid)"]
-                         ]
+                          ["FOREIGN KEY(document_id) REFERENCES documents(rowid)"]]
                          {:conditional? true}))
 
 (defn initialize-db! []
@@ -88,23 +87,22 @@
       (jdbc/query con [query pk-value])))))
 
 (defn insert-document!
-  [document]
+  [con document]
   (let [jsonified-parents (json/json-str (:parents document))
-        url               (:url document)
-        to-be-inserted    (assoc document :parents jsonified-parents)]
-    (update-or-insert! db-spec :documents to-be-inserted ["url = ?" url])
-    (query-element-id! db-spec :documents :url url)))
+        url (:url document)
+        to-be-inserted (assoc document :parents jsonified-parents)]
+    (update-or-insert! con :documents to-be-inserted ["url = ?" url])
+    (query-element-id! con :documents :url url)))
 
 (defn insert-terms!
-  [terms]
+  [con terms]
   (let [entity-builder (fn [term] {:term term})]
-    (jdbc/with-db-transaction [t-con db-spec]
-      (doall
-        (map
-          (fn [term]
-            (update-or-insert! t-con :terms (entity-builder term) ["term = ?" term])
-            (query-element-id! t-con :terms :term term))
-          terms)))))
+    (doall
+     (map
+      (fn [term]
+        (update-or-insert! con :terms (entity-builder term) ["term = ?" term])
+        (query-element-id! con :terms :term term))
+      terms))))
 
 (defn- insert-frequency!
   [con document token]
@@ -116,74 +114,73 @@
                 :frequency (:frequency token)
                 :origin origin
                 :indexes (json/json-str (:indexes token))}]
-       (update-or-insert!
-        con
-        :term_frequency
-        entity
-        ["term_id = ? and document_id = ? and origin = ?" term-id document-id origin])
-       true))
+    (update-or-insert!
+     con
+     :term_frequency
+     entity
+     ["term_id = ? and document_id = ? and origin = ?" term-id document-id origin])
+    true))
 
 (defn insert-frequencies!
-  [document tokens]
-  (jdbc/with-db-transaction [con db-spec]
-    (doall
-      (map
-        #(insert-frequency! con document %)
-        tokens))))
+  [con document tokens]
+  (doall
+   (map
+    #(insert-frequency! con document %)
+    tokens)))
 
 (defn get-parsed-urls! []
   (set
-    (jdbc/query db-spec ["select url from documents"]
-                        {:row-fn :url})))
+   (jdbc/query db-spec ["select url from documents"]
+               {:row-fn :url})))
 
 (defn query-doc-term-stats!
   "Returns the IDs from term, document, origin and
    frequency from provided term IDs."
   [term-ids]
   (jdbc/query db-spec
-    (cons
-      (str "select
+              (cons
+               (str "select
               term_id,
               document_id,
               origin,
               frequency
             from term_frequency
             where term_id in ("
-              (string/join "," (repeat (count term-ids) "?"))
-            ")")
-      (map str term-ids))))
+                    (string/join "," (repeat (count term-ids) "?"))
+                    ")")
+               (map str term-ids))))
 
 (defn query-term-stats!
   [term-ids]
   (jdbc/query db-spec
-    (cons
-      (str "select
+              (cons
+               (str "select
               term_id,
               count(document_id) as ndocs,
               d.total_ndocs
             from term_frequency
               join (select count(*) as total_ndocs from documents) as d
             where term_id in ("
-              (string/join "," (repeat (count term-ids) "?"))
-            ")
+                    (string/join "," (repeat (count term-ids) "?"))
+                    ")
             group by term_id")
-      (map str term-ids))))
+               (map str term-ids))))
 
 (defn get-term-ids-by-term!
   [terms]
   (utils/index-value-by
-    :rowid
-    :term
-    (jdbc/query db-spec
-      (cons
-        (str "select
+   :rowid
+   :term
+   (jdbc/query db-spec
+               (cons
+                (str "select
                 rowid,
                 term
               from terms
               where term in ("
-              (string/join "," (repeat (count terms) "?"))
-              ")")
-        terms))))
+                     (string/join "," (repeat (count terms) "?"))
+                     ")")
+                terms))))
 
 (defn query-term-ids!
   "returns the corresponding ids in the same order.
@@ -199,14 +196,14 @@
 (defn get-indexed-documents!
   [ids]
   (utils/index-by
-    :rowid
-    (map
-      parse-document-jsonified-fields
-      (jdbc/query db-spec
-        (cons
-          (str "select rowid, name, url, parents, date_added
+   :rowid
+   (map
+    parse-document-jsonified-fields
+    (jdbc/query db-spec
+                (cons
+                 (str "select rowid, name, url, parents, date_added
                 from documents
                 where rowid in ("
-                  (string/join "," (repeat (count ids) "?"))
-                ")")
-          ids)))))
+                      (string/join "," (repeat (count ids) "?"))
+                      ")")
+                 ids)))))

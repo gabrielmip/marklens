@@ -1,10 +1,10 @@
 (ns marklens.core
   (:gen-class)
-  (:require [marklens.etl.chrome.file-reader :as file-reader]
-            [marklens.storage :as storage]
-            [marklens.indexer :as indexer]
+  (:require [clojure.string :as string]
+            [marklens.etl.chrome.file-reader :as file-reader]
             [marklens.search-engine.searcher :as searcher]
-            [clojure.string :as string]))
+            [marklens.storage :as storage]
+            [marklens.tasks :as tasks]))
 
 (defn get-help
   []
@@ -29,8 +29,7 @@
     (cond
       (= command "index") (if-not (= (count args) 1)
                             (println "The json's filepath must come after the command 'index'. Use the command 'help' for more information.")
-                            (indexer/index-pages!
-                             (file-reader/get-pages-from-file (first args))))
+                            (tasks/index (first args)))
       (= command "search") (if (empty? args)
                              (println "Add the search query after the command 'search'. Use the command 'help' for more information.")
                              (print-results (searcher/search (string/join " " args))))

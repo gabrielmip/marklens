@@ -58,7 +58,7 @@
 
 (s/def :folder/type (create-type-spec "folder"))
 
-(s/def :page/type (create-type-spec "page"))
+(s/def :page/type (create-type-spec "url"))
 
 (s/def ::type
   (s/spec (s/or :folder :folder/type
@@ -73,6 +73,14 @@
   "Parse file content to expected format. Dates are converted to java.time.LocalDateTime."
   [file-name]
   (s/conform ::bookmark-file (json/read-json (slurp file-name))))
+
+(defn- file-to-tree-2
+  "Parse file content to expected format. Dates are converted to java.time.LocalDateTime."
+  [file-content]
+  (s/conform ::bookmark-file (json/read-json file-content)))
+
+; (def as-json (json/read-json (slurp "/home/gabriel/.config/BraveSoftware/Brave-Browser/Default/Bookmarks")))
+; (s/explain ::bookmark-file as-json)
 
 (defn- append-parents-to-nodes
   [nodes parent]
@@ -102,9 +110,15 @@
                (get-pages-from-root (assoc root :parents ()))))
             (:roots bookmark-tree)))))
 
+
 ; genealogy to string:
 ; (fn [page] #(clojure.string/join " > " (reverse (:parents page)))
 (defn get-pages-from-file
   "Reads bookmark JSON file and returns a list of pages."
   [file-name]
   (tree-to-pages (file-to-tree file-name)))
+
+(defn get-pages-from-file-2
+  "Reads bookmark JSON file and returns a list of pages."
+  [file-content]
+  (tree-to-pages (file-to-tree-2 file-content)))
