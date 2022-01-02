@@ -1,4 +1,4 @@
-(ns marklens.etl.chrome.file-reader
+(ns marklens.etl.chrome
   (:require [clojure.data.json :as json]
             [clojure.spec.alpha :as s]
             [clojure.spec.gen.alpha :as gen]
@@ -109,7 +109,6 @@
               (remove-unwanted-keys
                (get-pages-from-root (assoc root :parents ()))))
             (:roots bookmark-tree)))))
-
 
 ; genealogy to string:
 ; (fn [page] #(clojure.string/join " > " (reverse (:parents page)))

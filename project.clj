@@ -7,13 +7,13 @@
                  [org.clojure/data.json "1.0.0"]
                  [org.clojure/test.check "1.1.0"]
                  [org.clojure/java.jdbc "0.7.11"]
-                 [org.xerial/sqlite-jdbc "3.7.2"]
+                 [org.xerial/sqlite-jdbc "3.36.0.3"]
                  [com.mchange/c3p0 "0.9.5.5"]
 
                  ; fixes dependency problems in clj-tagsoup
                  [org.clojure/data.xml "0.0.8"]
                  [clj-tagsoup/clj-tagsoup "0.3.0" :exclusions
-                    [org.clojure/clojure org.clojure/data.xml]]
+                  [org.clojure/clojure org.clojure/data.xml]]
 
                  [clojure.java-time "0.3.2"]]
   :main marklens.core

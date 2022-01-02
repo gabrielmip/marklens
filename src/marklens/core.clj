@@ -1,7 +1,6 @@
 (ns marklens.core
   (:gen-class)
   (:require [clojure.string :as string]
-            [marklens.etl.chrome.file-reader :as file-reader]
             [marklens.search-engine.searcher :as searcher]
             [marklens.storage :as storage]
             [marklens.tasks :as tasks]))

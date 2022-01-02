@@ -2,13 +2,15 @@
   (:require [clojure.java.jdbc :as jdbc]
             [clojure.string :as string]
             [marklens.crawler :as crawler]
-            [marklens.etl.chrome.file-reader :as file-reader]
+            [marklens.etl.sources :as sources]
             [marklens.indexer :as indexer]
             [marklens.storage :as storage]
             [marklens.tasks.builder :as builder]))
 
-(defn- load-pages [{file :file}]
-  {:loaded-pages (file-reader/get-pages-from-file-2 file)})
+(defn- load-pages [{file-name :file-name}]
+  {:loaded-pages (if (string/ends-with? file-name ".sqlite")
+                   (sources/firefox file-name)
+                   (sources/chrome (slurp file-name)))})
 
 (defn- filter-unseen-pages [{loaded-pages :loaded-pages
                              parsed-urls :already-parsed-urls}]
@@ -38,7 +40,7 @@
       filter-unseen-pages
       crawl-pages
       save-pages)
-     {:file (slurp file-name)
+     {:file-name file-name
       :already-parsed-urls (storage/get-parsed-urls!)
       :url-crawler crawler/text-from-page!
       :stop-words (set (string/split-lines (slurp "resources/stopwords.txt")))

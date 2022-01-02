@@ -78,7 +78,6 @@
        (catch Exception _ ; expects exceptions when tuple already exists
          (jdbc/update! con table row where-clause))))
 
-
 (defn- query-element-id!
   [con table pk-field pk-value]
   (let [query (string/join ["select rowid from " (name table) " where " (name pk-field) " = ? limit 1"])]
@@ -140,12 +139,12 @@
   (jdbc/query db-spec
               (cons
                (str "select
-              term_id,
-              document_id,
-              origin,
-              frequency
-            from term_frequency
-            where term_id in ("
+                        term_id,
+                        document_id,
+                        origin,
+                        frequency
+                      from term_frequency
+                      where term_id in ("
                     (string/join "," (repeat (count term-ids) "?"))
                     ")")
                (map str term-ids))))
@@ -155,12 +154,12 @@
   (jdbc/query db-spec
               (cons
                (str "select
-              term_id,
-              count(document_id) as ndocs,
-              d.total_ndocs
-            from term_frequency
-              join (select count(*) as total_ndocs from documents) as d
-            where term_id in ("
+                      term_id,
+                      count(document_id) as ndocs,
+                      d.total_ndocs
+                    from term_frequency
+                      join (select count(*) as total_ndocs from documents) as d
+                    where term_id in ("
                     (string/join "," (repeat (count term-ids) "?"))
                     ")
             group by term_id")
@@ -174,10 +173,10 @@
    (jdbc/query db-spec
                (cons
                 (str "select
-                rowid,
-                term
-              from terms
-              where term in ("
+                        rowid,
+                        term
+                      from terms
+                      where term in ("
                      (string/join "," (repeat (count terms) "?"))
                      ")")
                 terms))))
@@ -202,8 +201,8 @@
     (jdbc/query db-spec
                 (cons
                  (str "select rowid, name, url, parents, date_added
-                from documents
-                where rowid in ("
+                        from documents
+                        where rowid in ("
                       (string/join "," (repeat (count ids) "?"))
                       ")")
                  ids)))))
